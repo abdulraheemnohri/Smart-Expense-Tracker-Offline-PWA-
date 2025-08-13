@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Smart Expense Tracker</h1>
+            <button id="theme-toggle">Toggle Dark Mode</button>
+        </header>
+        <main>
+            <section id="expense-form-section">
+                <h2>Add New Expense</h2>
+                <form id="expense-form">
+                    <input type="number" id="amount" placeholder="Amount" required>
+                    <input type="text" id="category" placeholder="Category" required>
+                    <input type="date" id="date" required>
+                    <input type="text" id="note" placeholder="Note">
+                    <button type="submit">Add Expense</button>
+                </form>
+            </section>
+            <section id="filter-section">
+                <h2>Filter Expenses</h2>
+                <form id="filter-form">
+                    <input type="text" id="filter-category" placeholder="Filter by Category...">
+                    <input type="month" id="filter-month" placeholder="Filter by Month...">
+                    <button type="button" id="clear-filters">Clear Filters</button>
+                </form>
+            </section>
+            <section id="expenses-list-section">
+                <h2>Expenses</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Note</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-list">
+                        <!-- Expense items will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+            </section>
+            <section id="charts-section">
+                <h2>Analytics</h2>
+                <div class="chart-container">
+                    <canvas id="category-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthly-chart"></canvas>
+                </div>
+            </section>
+            <section id="export-section">
+                <h2>Data Export</h2>
+                <button id="export-csv">Export to CSV</button>
+            </section>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
