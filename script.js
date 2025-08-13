@@ -1,14 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Element selectors
+    // --- ELEMENT SELECTORS ---
     const themeToggle = document.getElementById('theme-toggle');
     const expenseForm = document.getElementById('expense-form');
     const expensesList = document.getElementById('expenses-list');
     const categoryChartCanvas = document.getElementById('category-chart').getContext('2d');
     const monthlyChartCanvas = document.getElementById('monthly-chart').getContext('2d');
     const exportCsvButton = document.getElementById('export-csv');
+    // Filters
     const filterCategory = document.getElementById('filter-category');
     const filterMonth = document.getElementById('filter-month');
+    const filterPaymentMethod = document.getElementById('filter-payment-method');
+    const filterStartDate = document.getElementById('filter-start-date');
+    const filterEndDate = document.getElementById('filter-end-date');
+    const filterMinAmount = document.getElementById('filter-min-amount');
+    const filterMaxAmount = document.getElementById('filter-max-amount');
     const clearFiltersButton = document.getElementById('clear-filters');
+    // Modal
+    const editModal = document.getElementById('edit-modal');
+    const editForm = document.getElementById('edit-form');
+    const closeModalBtn = document.querySelector('.close-btn');
+    const cancelModalBtn = document.querySelector('.cancel-btn');
 
     let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
     let pieChart;
@@ -29,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderExpenses = (expensesToRender) => {
         expensesList.innerHTML = '';
         if (expensesToRender.length === 0) {
-            expensesList.innerHTML = '<tr><td colspan="5">No matching expenses.</td></tr>';
+            expensesList.innerHTML = '<tr><td colspan="6">No matching expenses.</td></tr>';
             return;
         }
         expensesToRender.forEach(expense => {
@@ -39,7 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${expense.category}</td>
                 <td>${expense.date}</td>
                 <td>${expense.note}</td>
-                <td><button class="delete-btn" data-id="${expense.id}">Delete</button></td>
+                <td>${expense.paymentMethod}</td>
+                <td>
+                    <button class="edit-btn" data-id="${expense.id}">Edit</button>
+                    <button class="delete-btn" data-id="${expense.id}">Delete</button>
+                </td>
             `;
             expensesList.appendChild(row);
         });
@@ -95,20 +110,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-
     // --- FILTERING ---
     const applyFilters = () => {
         const categoryValue = filterCategory.value.toLowerCase();
-        const monthValue = filterMonth.value; // YYYY-MM
+        const monthValue = filterMonth.value;
+        const paymentMethodValue = filterPaymentMethod.value;
+        const startDateValue = filterStartDate.value;
+        const endDateValue = filterEndDate.value;
+        const minAmountValue = parseFloat(filterMinAmount.value);
+        const maxAmountValue = parseFloat(filterMaxAmount.value);
 
         let filteredExpenses = expenses;
 
         if (categoryValue) {
             filteredExpenses = filteredExpenses.filter(e => e.category.toLowerCase().includes(categoryValue));
         }
-
         if (monthValue) {
             filteredExpenses = filteredExpenses.filter(e => e.date.startsWith(monthValue));
+        }
+        if (paymentMethodValue) {
+            filteredExpenses = filteredExpenses.filter(e => e.paymentMethod === paymentMethodValue);
+        }
+        if (startDateValue) {
+            filteredExpenses = filteredExpenses.filter(e => e.date >= startDateValue);
+        }
+        if (endDateValue) {
+            filteredExpenses = filteredExpenses.filter(e => e.date <= endDateValue);
+        }
+        if (!isNaN(minAmountValue)) {
+            filteredExpenses = filteredExpenses.filter(e => e.amount >= minAmountValue);
+        }
+        if (!isNaN(maxAmountValue)) {
+            filteredExpenses = filteredExpenses.filter(e => e.amount <= maxAmountValue);
         }
 
         return filteredExpenses;
@@ -121,11 +154,18 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMonthlyChart(filteredExpenses);
     };
 
-    filterCategory.addEventListener('input', renderAll);
-    filterMonth.addEventListener('input', renderAll);
+    [filterCategory, filterMonth, filterPaymentMethod, filterStartDate, filterEndDate, filterMinAmount, filterMaxAmount].forEach(el => {
+        el.addEventListener('input', renderAll);
+    });
+
     clearFiltersButton.addEventListener('click', () => {
         filterCategory.value = '';
         filterMonth.value = '';
+        filterPaymentMethod.value = '';
+        filterStartDate.value = '';
+        filterEndDate.value = '';
+        filterMinAmount.value = '';
+        filterMaxAmount.value = '';
         renderAll();
     });
 
@@ -137,14 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
             amount: parseFloat(document.getElementById('amount').value),
             category: document.getElementById('category').value,
             date: document.getElementById('date').value,
-            note: document.getElementById('note').value
+            note: document.getElementById('note').value,
+            paymentMethod: document.getElementById('payment-method').value
         };
-
-        if (!newExpense.amount || !newExpense.category || !newExpense.date) {
+        if (!newExpense.amount || !newExpense.category || !newExpense.date || !newExpense.paymentMethod) {
             alert('Please fill in all required fields.');
             return;
         }
-
         expenses.push(newExpense);
         localStorage.setItem('expenses', JSON.stringify(expenses));
         renderAll();
@@ -152,23 +191,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     expensesList.addEventListener('click', e => {
+        const id = parseInt(e.target.dataset.id);
         if (e.target.classList.contains('delete-btn')) {
-            const id = parseInt(e.target.dataset.id);
             expenses = expenses.filter(expense => expense.id !== id);
             localStorage.setItem('expenses', JSON.stringify(expenses));
             renderAll();
+        }
+        if (e.target.classList.contains('edit-btn')) {
+            openEditModal(id);
+        }
+    });
+
+    // --- MODAL LOGIC ---
+    const openEditModal = (id) => {
+        const expense = expenses.find(e => e.id === id);
+        if (expense) {
+            document.getElementById('edit-id').value = expense.id;
+            document.getElementById('edit-amount').value = expense.amount;
+            document.getElementById('edit-category').value = expense.category;
+            document.getElementById('edit-date').value = expense.date;
+            document.getElementById('edit-note').value = expense.note;
+            document.getElementById('edit-payment-method').value = expense.paymentMethod;
+            editModal.style.display = 'block';
+        }
+    };
+
+    const closeEditModal = () => {
+        editModal.style.display = 'none';
+    };
+
+    editForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const id = parseInt(document.getElementById('edit-id').value);
+        const expenseIndex = expenses.findIndex(e => e.id === id);
+        if (expenseIndex > -1) {
+            expenses[expenseIndex] = {
+                id: id,
+                amount: parseFloat(document.getElementById('edit-amount').value),
+                category: document.getElementById('edit-category').value,
+                date: document.getElementById('edit-date').value,
+                note: document.getElementById('edit-note').value,
+                paymentMethod: document.getElementById('edit-payment-method').value
+            };
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            closeEditModal();
+            renderAll();
+        }
+    });
+
+    closeModalBtn.addEventListener('click', closeEditModal);
+    cancelModalBtn.addEventListener('click', closeEditModal);
+    window.addEventListener('click', e => {
+        if (e.target == editModal) {
+            closeEditModal();
         }
     });
 
     // --- EXPORT ---
     exportCsvButton.addEventListener('click', () => {
-        const headers = ['Amount', 'Category', 'Date', 'Note'];
-        const expensesToExport = applyFilters(); // Export only filtered expenses
+        const headers = ['Amount', 'Category', 'Date', 'Note', 'Payment Method'];
+        const expensesToExport = applyFilters();
         const csvContent = [
             headers.join(','),
-            ...expensesToExport.map(e => [e.amount, e.category, e.date, e.note].join(','))
+            ...expensesToExport.map(e => [e.amount, e.category, e.date, e.note, e.paymentMethod].join(','))
         ].join('\n');
-
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.setAttribute('href', URL.createObjectURL(blob));

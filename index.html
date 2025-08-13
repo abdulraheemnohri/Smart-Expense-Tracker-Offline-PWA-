@@ -21,6 +21,14 @@
                     <input type="text" id="category" placeholder="Category" required>
                     <input type="date" id="date" required>
                     <input type="text" id="note" placeholder="Note">
+                    <select id="payment-method" required>
+                        <option value="" disabled selected>Payment Method</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Other">Other</option>
+                    </select>
                     <button type="submit">Add Expense</button>
                 </form>
             </section>
@@ -29,6 +37,18 @@
                 <form id="filter-form">
                     <input type="text" id="filter-category" placeholder="Filter by Category...">
                     <input type="month" id="filter-month" placeholder="Filter by Month...">
+                    <select id="filter-payment-method">
+                        <option value="">-- All Payment Methods --</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="date" id="filter-start-date" title="Start Date">
+                    <input type="date" id="filter-end-date" title="End Date">
+                    <input type="number" id="filter-min-amount" placeholder="Min Amount">
+                    <input type="number" id="filter-max-amount" placeholder="Max Amount">
                     <button type="button" id="clear-filters">Clear Filters</button>
                 </form>
             </section>
@@ -41,6 +61,7 @@
                             <th>Category</th>
                             <th>Date</th>
                             <th>Note</th>
+                            <th>Payment Method</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -66,5 +87,29 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
+
+    <!-- Edit Expense Modal -->
+    <div id="edit-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Edit Expense</h2>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <input type="number" id="edit-amount" placeholder="Amount" required>
+                <input type="text" id="edit-category" placeholder="Category" required>
+                <input type="date" id="edit-date" required>
+                <input type="text" id="edit-note" placeholder="Note">
+                <select id="edit-payment-method" required>
+                    <option value="Cash">Cash</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Debit Card">Debit Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button type="submit">Save Changes</button>
+                <button type="button" class="cancel-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
